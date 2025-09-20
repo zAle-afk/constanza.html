@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>C ❤</title>
+  <meta name="description" content="Carta interactiva con poema y canción dedicada." />
+  <meta property="og:title" content="C ❤" />
+  <meta property="og:description" content="Abrí el sello, leé el poema y escuchá la canción." />
+  <meta property="og:type" content="website" />
+  <meta name="theme-color" content="#501d8a" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&family=Playfair+Display:ital,wght@0,500;0,700;1,600&display=swap" rel="stylesheet">
+  <link rel="icon" type="image/svg+xml" href='data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><defs><linearGradient id="g" x1="0" x2="1"><stop stop-color="%23c9a227"/><stop offset="1" stop-color="%23f1d26a"/></linearGradient></defs><rect width="64" height="64" rx="12" fill="%23501d8a"/><text x="50%" y="58%" text-anchor="middle" font-family="Playfair Display, serif" font-size="42" fill="url(%23g)">C</text></svg>' />
+
+  <style>
+    :root{
+      --bg-1:#2b1055; --bg-2:#501d8a; --bg-3:#1b0f2e;
+      --paper:#fffaf3; --ink:#1f1d2b;
+      --accent:#c9a227; --accent-2:#f1d26a;
+      --shadow: 0 20px 60px rgba(0,0,0,.35);
+    }
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{
+      margin:0;display:grid;place-items:center;min-height:100svh;
+      font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,"Helvetica Neue",Arial,sans-serif;
+      color:var(--ink);
+      background:
+        radial-gradient(1200px 900px at 80% -10%, rgba(255,255,255,.06), transparent 60%),
+        radial-gradient(1000px 700px at 10% 110%, rgba(255,255,255,.05), transparent 60%),
+        linear-gradient(120deg,var(--bg-1),var(--bg-2) 45%,var(--bg-3));
+      overflow:hidden;
+    }
+    .card{
+      width:min(720px,92vw); background:var(--paper);
+      border-radius:28px; padding:48px 40px; box-shadow:var(--shadow); text-align:center;
+    }
+    .heading{font-family:"Playfair Display",serif;font-size:clamp(32px,5vw,52px);margin:0 0 20px;}
+    .lead{margin:0 0 24px;font-size:16px;line-height:1.5}
+    .seal-wrap{display:grid;place-items:center;margin-top:28px}
+    .seal{--size:96px;width:var(--size);height:var(--size);border-radius:999px;display:grid;place-items:center;
+      background: radial-gradient(60% 60% at 35% 30%, var(--accent-2), var(--accent) 70%);cursor:pointer;}
+    .footer{margin-top:30px;font-size:12px;opacity:.6;text-align:center}
+
+    /* Modal scroll + header/foot sticky */
+    #poem-modal{
+      position:fixed; inset:0; display:none;
+      align-items:center; justify-content:center; padding:0;
+      background:rgba(15,12,41,.55); backdrop-filter:blur(6px);
+      z-index:9999;
+    }
+    .modal-sheet{
+      width:100%; max-width:860px; height:100svh;
+      display:grid; grid-template-rows:auto 1fr auto;
+      background:var(--paper);
+      box-shadow:var(--shadow);
+    }
+    @media (min-width:820px){
+      .modal-sheet{border-radius:28px; height:min(92svh,820px); margin:24px; overflow:hidden;}
+    }
+    .modal-header{
+      position:sticky; top:0; background:var(--paper); z-index:10;
+      padding:18px 20px 12px 20px; border-bottom:1px solid rgba(0,0,0,.06); text-align:center;
+    }
+    .poem-title{
+      margin:0;
+      font-family:'Playfair Display',serif;
+      font-size:clamp(20px,4.8vw,30px);
+      color:#261b3d;
+      text-align:center;
+      animation: glow 2.6s ease-in-out infinite;
+    }
+    @keyframes glow{
+      0%,100%{text-shadow:0 0 0 rgba(124,77,255,0.0), 0 0 0 rgba(124,77,255,0.0)}
+      50%{text-shadow:0 0 10px rgba(124,77,255,.55), 0 0 22px rgba(124,77,255,.35)}
+    }
+    .modal-header p{margin:6px 0 0 0; opacity:.7}
+    .modal-body{overflow:auto; -webkit-overflow-scrolling:touch; padding:18px 22px 18px 22px;}
+    #poem{white-space:pre-wrap; line-height:1.65; font-size:clamp(16px,4.2vw,18px); color:#2c2a36;}
+    .modal-footer{
+      position:sticky; bottom:0; background:linear-gradient(to top, var(--paper), rgba(255,255,255,0));
+      padding:14px 20px 18px 20px; display:flex; gap:12px; justify-content:center; align-items:center;
+      border-top:1px solid rgba(0,0,0,.06);
+    }
+    .btn-link{display:inline-block;padding:14px 28px;font-size:18px;font-weight:600;border-radius:999px;text-decoration:none;background:linear-gradient(135deg,var(--accent),var(--accent-2));color:#1b0f2e;box-shadow:0 6px 16px rgba(0,0,0,.25);}
+    .btn-secondary{appearance:none;border:0;border-radius:999px;padding:10px 16px;font-weight:600;background:#eee;color:#333;cursor:pointer}
+
+    /* Intro de flanes */
+    #intro{
+      position:fixed; inset:0; background:linear-gradient(120deg,var(--bg-1),var(--bg-2) 45%,var(--bg-3));
+      display:flex; align-items:center; justify-content:center; z-index:10000;
+      overflow:hidden;
+    }
+    #intro .tip{position:absolute; bottom:18px; left:50%; transform:translateX(-50%); color:#fff; opacity:.7; font-size:14px}
+    .flan{position:absolute; font-size:36px; filter:drop-shadow(0 6px 10px rgba(0,0,0,.25)); opacity:0.92}
+    @keyframes floatUp{0%{transform:translateY(20vh) scale(.9) rotate(0deg); opacity:0} 10%{opacity:1} 100%{transform:translateY(-110vh) scale(1.05) rotate(10deg); opacity:0}}
+    .hide{animation: fadeOut .6s ease forwards}
+    @keyframes fadeOut{to{opacity:0; visibility:hidden}}
+  </style>
+</head>
+<body>
+  <!-- Intro con flanes flotando -->
+  <div id="intro" role="dialog" aria-label="animación de apertura">
+    <div class="tip">tocar para continuar</div>
+  </div>
+
+  <main class="card">
+    <h1 class="heading">C ❤</h1>
+    <p class="lead">Este es mi poema favorito, me recuerda mucho a vos pero no sabia como compartirtelo, lo edite un poco a mi manera. Tambien una cancion que me gusta mucho. Espero te guste. Teamomucho.</p>
+    <div class="seal-wrap"><a class="seal" id="seal" href="#">💛</a></div>
+    <div class="footer">Hecho para vos ✨</div>
+  </main>
+
+  <section id="poem-modal" aria-hidden="true">
+    <div class="modal-sheet">
+      <header class="modal-header">
+        <h2 class="poem-title">Mientras elevan pirámides yo, me enamore de cleopatra.</h2>
+        <p>Para C ❤</p>
+      </header>
+      <div class="modal-body">
+        <div id="poem">¿Mi tierra?
+Mi tierra sos vos.
+
+¿Mi gente?
+Mi gente sos vos.
+
+El destierro para mí empieza donde no estés.
+Y mi vida, decime, mi vida, ¿qué es, si no sos vos?
+
+Sos la sed y lo que la calma.
+Sos la herida y lo que la cura.
+Sos la caída y lo que me levanta.
+Sos la oscuridad y la luz que la rompe.
+
+Por vos aprendí lo que es amar.
+Por vos aprendí a sostenerme en medio del derrumbe.
+Por vos sé lo que significa un refugio.
+
+Sos principio y sos destino,
+sos raíz y también cima,
+sos certeza y milagro.
+
+Todo lo que en mí existe,
+todo lo que yo soy,
+todo lo que sueño cuando cierro los ojos,
+todo eso, sos vos.
+
+Y en el centro de todo, tu nombre: Constanza.
+Mi principio al escucharlo,
+mi compañía en cada día de mi vida.
+Una palabra que desborda ternura,
+un nombre que guarda mundos enteros,
+y que en vos se vuelve aún más luminoso,
+porque lo llevás como quien lleva
+la llave de lo eterno.</div>
+      </div>
+      <footer class="modal-footer">
+        <a href="https://youtu.be/JdgBBQn50yQ?si=sxUibmEDKaxGkSM7" target="_blank" rel="noopener" class="btn-link">Para vos</a>
+        <button id="close-poem" class="btn-secondary">Cerrar</button>
+      </footer>
+    </div>
+  </section>
+
+  <script>
+    // Intro de flanes 🍮
+    const intro = document.getElementById('intro');
+    (function spawnFlans(){
+      const COUNT = 28;
+      for(let i=0;i<COUNT;i++){
+        const s = document.createElement('span');
+        s.className = 'flan';
+        s.textContent = '🍮';
+        s.style.left = (Math.random()*100)+'vw';
+        s.style.bottom = (-10 - Math.random()*20)+'vh';
+        const d = 5000 + Math.random()*4000;
+        const delay = Math.random()*1200;
+        s.style.animation = `floatUp ${d}ms linear ${delay}ms forwards`;
+        intro.appendChild(s);
+      }
+    })();
+    intro.addEventListener('click', ()=> intro.classList.add('hide'));
+
+    // Modal
+    const seal = document.getElementById('seal');
+    seal.addEventListener('click', e=>{
+      e.preventDefault();
+      const m = document.getElementById('poem-modal');
+      m.style.display='flex';
+      m.setAttribute('aria-hidden','false');
+    });
+    document.getElementById('close-poem').addEventListener('click', ()=>{
+      const m = document.getElementById('poem-modal');
+      m.style.display='none';
+      m.setAttribute('aria-hidden','true');
+    });
+  </script>
+</body>
+</html>
